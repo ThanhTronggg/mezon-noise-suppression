@@ -17,7 +17,9 @@
     "dist/index.js",
     "dist/index.esm.js",
     "dist/index.d.ts",
-    "README.md"
+    "README.md",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
   ],
   "scripts": {
     "build": "rollup -c && node --input-type=module -e \"import { unlinkSync } from 'fs'; unlinkSync('dist/DeepFilterWorklet.js');\"",
@@ -38,7 +40,7 @@
     "audio-processing"
   ],
   "author": "phuvinh010701",
-  "license": "MIT",
+  "license": "(Apache-2.0 OR MIT)",
   "peerDependencies": {
     "livekit-client": "^2.0.0"
   },
