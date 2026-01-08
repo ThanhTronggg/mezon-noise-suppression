@@ -1,3 +1,9 @@
+## [1.1.4](https://github.com/mezonai/mezon-noise-suppression/compare/v1.1.3...v1.1.4) (2026-01-08)
+
+### Bug Fixes
+
+* update default CDN URL for asset loading ([d8540df](https://github.com/mezonai/mezon-noise-suppression/commit/d8540df52953cdfae114c294bbd7d6ce9ebe45c2))
+
 ## 1.1.2 (2025-12-05)
 
 ### Features
