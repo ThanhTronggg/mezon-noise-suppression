@@ -6,7 +6,7 @@ export class AssetLoader {
   private readonly cdnUrl: string;
 
   constructor(config: AssetConfig = {}) {
-    this.cdnUrl = config.cdnUrl ?? 'https://cdn.laptrinhai.id.vn/deepfilternet3';
+    this.cdnUrl = config.cdnUrl ?? 'https://cdn.mezon.ai/AI/models/datas/noise_suppression/deepfilternet3';
   }
 
   private getCdnUrl(relativePath: string): string {
