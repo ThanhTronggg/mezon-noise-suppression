@@ -113,7 +113,7 @@ const filter = new DeepFilterNoiseFilterProcessor({
   noiseReductionLevel: 80,
   enabled: true,
   assetConfig: {
-    cdnUrl: 'https://cdn.laptrinhai.id.vn/deepfilternet3' // Optional: use custom CDN
+    cdnUrl: 'https://cdn.mezon.ai/AI/models/datas/noise_suppression/deepfilternet3' // Optional: use custom CDN
   }
 });
 
@@ -126,7 +126,7 @@ filter.setSuppressionLevel(60);
 filter.setEnabled(false); // Disable temporarily
 ```
 
-For a complete React example, see: [DeepFilterNet3 React Example](https://github.com/mezonai/DeepFilterNet3-React-Example)
+For a complete React example, see: [DeepFilterNet3 React Example](https://github.com/phuvinh010701/DeepFilterNet3-React-Example)
 
 ### Build
 
