@@ -1,3 +1,9 @@
+## [1.1.4](https://github.com/mezonai/mezon-noise-suppression/compare/v1.1.3...v1.1.4) (2026-01-08)
+
+### Bug Fixes
+
+* update CDN URL in README and AssetLoader, fix React example link ([2545176](https://github.com/mezonai/mezon-noise-suppression/commit/2545176cbd17883cd824c00c7ba3b96a7afa909d))
+
 ## 1.1.2 (2025-12-05)
 
 ### Features
