@@ -1,4 +1,5 @@
 export const WorkletMessageTypes = {
   SET_SUPPRESSION_LEVEL: 'SET_SUPPRESSION_LEVEL',
-  SET_BYPASS: 'SET_BYPASS'
+  SET_BYPASS: 'SET_BYPASS',
+  SET_AGC_PARAMS: 'SET_AGC_PARAMS'
 } as const;

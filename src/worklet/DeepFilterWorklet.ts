@@ -54,7 +54,7 @@ class DeepFilterAudioProcessor extends AudioWorkletProcessor {
     }
   }
 
-  private handleMessage(data: { type: string; value?: number | boolean }): void {
+  private handleMessage(data: { type: string; value?: number | boolean | any }): void {
     switch (data.type) {
       case WorkletMessageTypes.SET_SUPPRESSION_LEVEL:
         if (this.dfModel && typeof data.value === 'number') {
@@ -64,6 +64,18 @@ class DeepFilterAudioProcessor extends AudioWorkletProcessor {
         break;
       case WorkletMessageTypes.SET_BYPASS:
         this.bypass = Boolean(data.value);
+        break;
+      case WorkletMessageTypes.SET_AGC_PARAMS:
+        if (this.dfModel && data.value && typeof data.value === 'object') {
+          const params = data.value;
+          wasm_bindgen.df_set_agc_params(
+            this.dfModel.handle,
+            Boolean(params.enabled),
+            Number(params.desiredOutputRms ?? 0.1),
+            Number(params.distortionFactor ?? 0.01),
+            Number(params.snrThresh ?? 5.0)
+          );
+        }
         break;
     }
   }

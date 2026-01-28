@@ -57,6 +57,15 @@ export class DeepFilterNoiseFilterProcessor implements TrackProcessor<Track.Kind
     this.processor.setSuppressionLevel(level);
   }
 
+  setAgcParams(params: {
+    enabled: boolean;
+    desiredOutputRms?: number;
+    distortionFactor?: number;
+    snrThresh?: number;
+  }): void {
+    this.processor.setAgcParams(params);
+  }
+
   isEnabled(): boolean {
     return this.enabled;
   }

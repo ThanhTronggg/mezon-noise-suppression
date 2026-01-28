@@ -71,6 +71,25 @@ export class DeepFilterNet3Processor {
     });
   }
 
+  setAgcParams(params: {
+    enabled: boolean;
+    desiredOutputRms?: number;
+    distortionFactor?: number;
+    snrThresh?: number;
+  }): void {
+    if (!this.workletNode) return;
+
+    this.workletNode.port.postMessage({
+      type: WorkletMessageTypes.SET_AGC_PARAMS,
+      value: {
+        enabled: params.enabled,
+        desiredOutputRms: params.desiredOutputRms ?? 0.1,
+        distortionFactor: params.distortionFactor ?? 0.01,
+        snrThresh: params.snrThresh ?? 5.0
+      }
+    });
+  }
+
   destroy(): void {
     if (!this.isInitialized) return;
 

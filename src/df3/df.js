@@ -1,15 +1,8 @@
-let wasm_bindgen;
-(function() {
-    const __exports = {};
-    let script_src;
-    if (typeof document !== 'undefined' && document.currentScript !== null) {
-        script_src = new URL(document.currentScript.src, location.href).toString();
-    }
-    let wasm = undefined;
+let wasm;
 
-    const heap = new Array(128).fill(undefined);
+const heap = new Array(128).fill(undefined);
 
-    heap.push(undefined, null, true, false);
+heap.push(undefined, null, true, false);
 
 function getObject(idx) { return heap[idx]; }
 
@@ -75,22 +68,22 @@ function passArray8ToWasm0(arg, malloc) {
 * @param {number} atten_lim
 * @returns {number}
 */
-__exports.df_create = function(model_bytes, atten_lim) {
+export function df_create(model_bytes, atten_lim) {
     const ptr0 = passArray8ToWasm0(model_bytes, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.df_create(ptr0, len0, atten_lim);
     return ret >>> 0;
-};
+}
 
 /**
 * Get DeepFilterNet frame size in samples.
 * @param {number} st
 * @returns {number}
 */
-__exports.df_get_frame_length = function(st) {
+export function df_get_frame_length(st) {
     const ret = wasm.df_get_frame_length(st);
     return ret >>> 0;
-};
+}
 
 /**
 * @param {number} st
@@ -99,9 +92,9 @@ __exports.df_get_frame_length = function(st) {
 * @param {number} distortion_factor
 * @param {number} snr_thresh
 */
-__exports.df_set_agc_params = function(st, enabled, desired_output_rms, distortion_factor, snr_thresh) {
+export function df_set_agc_params(st, enabled, desired_output_rms, distortion_factor, snr_thresh) {
     wasm.df_set_agc_params(st, enabled, desired_output_rms, distortion_factor, snr_thresh);
-};
+}
 
 /**
 * Set DeepFilterNet attenuation limit.
@@ -111,9 +104,9 @@ __exports.df_set_agc_params = function(st, enabled, desired_output_rms, distorti
 * @param {number} st
 * @param {number} lim_db
 */
-__exports.df_set_atten_lim = function(st, lim_db) {
+export function df_set_atten_lim(st, lim_db) {
     wasm.df_set_atten_lim(st, lim_db);
-};
+}
 
 /**
 * Set DeepFilterNet post filter beta. A beta of 0 disables the post filter.
@@ -123,9 +116,9 @@ __exports.df_set_atten_lim = function(st, lim_db) {
 * @param {number} st
 * @param {number} beta
 */
-__exports.df_set_post_filter_beta = function(st, beta) {
+export function df_set_post_filter_beta(st, beta) {
     wasm.df_set_post_filter_beta(st, beta);
-};
+}
 
 let cachedFloat32Memory0 = null;
 
@@ -156,12 +149,12 @@ function passArrayF32ToWasm0(arg, malloc) {
 * @param {Float32Array} input
 * @returns {Float32Array}
 */
-__exports.df_process_frame = function(st, input) {
+export function df_process_frame(st, input) {
     const ptr0 = passArrayF32ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.df_process_frame(st, ptr0, len0);
     return takeObject(ret);
-};
+}
 
 function handleError(f, args) {
     try {
@@ -176,7 +169,7 @@ const DFStateFinalization = (typeof FinalizationRegistry === 'undefined')
     : new FinalizationRegistry(ptr => wasm.__wbg_dfstate_free(ptr >>> 0));
 /**
 */
-class DFState {
+export class DFState {
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
@@ -190,7 +183,6 @@ class DFState {
         wasm.__wbg_dfstate_free(ptr);
     }
 }
-__exports.DFState = DFState;
 
 async function __wbg_load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
@@ -387,8 +379,8 @@ function initSync(module) {
 async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
-    if (typeof input === 'undefined' && typeof script_src !== 'undefined') {
-        input = script_src.replace(/\.js$/, '_bg.wasm');
+    if (typeof input === 'undefined') {
+        input = new URL('df_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
@@ -403,6 +395,5 @@ async function __wbg_init(input) {
     return __wbg_finalize_init(instance, module);
 }
 
-wasm_bindgen = Object.assign(__wbg_init, { initSync }, __exports);
-
-})();
+export { initSync }
+export default __wbg_init;
