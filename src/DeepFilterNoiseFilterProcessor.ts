@@ -1,4 +1,4 @@
-import { DeepFilterNet3Processor } from './DeepFilterNet3Processor';
+import { DeepFilterNet3Processor, DeepFilterNet3ProcessorConfig } from './DeepFilterNet3Processor';
 import type { TrackProcessor, AudioProcessorOptions, Track } from 'livekit-client';
 import type { DeepFilterNoiseFilterOptions } from './interfaces';
 
@@ -11,23 +11,33 @@ export class DeepFilterNoiseFilterProcessor implements TrackProcessor<Track.Kind
   sourceNode: MediaStreamAudioSourceNode | null = null;
   workletNode: AudioWorkletNode | null = null;
   destination: MediaStreamAudioDestinationNode | null = null;
-  processor: DeepFilterNet3Processor;
+  processor?: DeepFilterNet3Processor;
   enabled = true;
   originalTrack?: MediaStreamTrack;
+  private config: DeepFilterNet3ProcessorConfig;
 
   constructor(options: DeepFilterNoiseFilterOptions = {}) {
-    const cfg = {
+    this.config = {
       sampleRate: options.sampleRate ?? 48000,
       noiseReductionLevel: options.noiseReductionLevel ?? 80,
       assetConfig: options.assetConfig
     };
 
     this.enabled = options.enabled ?? true;
-    this.processor = new DeepFilterNet3Processor(cfg);
   }
 
   static isSupported(): boolean {
     return typeof AudioContext !== 'undefined' && typeof WebAssembly !== 'undefined';
+  }
+
+  static preload(options: DeepFilterNoiseFilterOptions = {}): Promise<void> {
+    const cfg = {
+      sampleRate: options.sampleRate ?? 48000,
+      noiseReductionLevel: options.noiseReductionLevel ?? 80,
+      assetConfig: options.assetConfig
+    };
+    // Fire and forget, or return specific assets if needed, but void is enough for warming up
+    return DeepFilterNet3Processor.preload(cfg).then(() => { });
   }
 
   init = async (opts: { track?: MediaStreamTrack; mediaStreamTrack?: MediaStreamTrack }): Promise<void> => {
@@ -49,12 +59,12 @@ export class DeepFilterNoiseFilterProcessor implements TrackProcessor<Track.Kind
 
   setEnabled = async (enable: boolean): Promise<boolean> => {
     this.enabled = enable;
-    this.processor.setNoiseSuppressionEnabled(enable);
+    this.processor?.setNoiseSuppressionEnabled(enable);
     return this.enabled;
   };
 
   setSuppressionLevel(level: number): void {
-    this.processor.setSuppressionLevel(level);
+    this.processor?.setSuppressionLevel(level);
   }
 
   isEnabled(): boolean {
@@ -62,7 +72,7 @@ export class DeepFilterNoiseFilterProcessor implements TrackProcessor<Track.Kind
   }
 
   isNoiseSuppressionEnabled(): boolean {
-    return this.processor.isNoiseSuppressionEnabled();
+    return this.processor?.isNoiseSuppressionEnabled() ?? false;
   }
 
   suspend = async (): Promise<void> => {
@@ -79,7 +89,7 @@ export class DeepFilterNoiseFilterProcessor implements TrackProcessor<Track.Kind
 
   destroy = async (): Promise<void> => {
     await this.teardownGraph();
-    this.processor.destroy();
+    this.processor?.destroy();
   };
 
   private async ensureGraph(): Promise<void> {
@@ -97,7 +107,9 @@ export class DeepFilterNoiseFilterProcessor implements TrackProcessor<Track.Kind
       }
     }
 
-    await this.processor.initialize();
+    if (!this.processor) {
+      this.processor = await DeepFilterNet3Processor.create(this.config);
+    }
 
     if (!this.workletNode) {
       const node = await this.processor.createAudioWorkletNode(this.audioContext);

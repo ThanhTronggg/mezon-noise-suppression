@@ -1,4 +1,4 @@
-import { AssetLoader, getAssetLoader } from './asset-loader/AssetLoader';
+import { AssetLoader, getAssetLoader, AssetConfig } from './asset-loader/AssetLoader';
 import { createWorkletModule } from './utils/workerUtils';
 import type { ProcessorAssets, DeepFilterNet3ProcessorConfig } from './interfaces';
 import { WorkletMessageTypes } from './constants';
@@ -8,6 +8,8 @@ import workletCode from './worklet/DeepFilterWorklet.ts?worklet-code';
 export type { DeepFilterNet3ProcessorConfig };
 
 export class DeepFilterNet3Processor {
+  private static preloadPromise: Promise<ProcessorAssets> | null = null;
+  private static preloadConfig: AssetConfig | undefined;
   private assetLoader: AssetLoader;
   private assets: ProcessorAssets | null = null;
   private workletNode: AudioWorkletNode | null = null;
@@ -15,7 +17,7 @@ export class DeepFilterNet3Processor {
   private bypassEnabled = false;
   private config: DeepFilterNet3ProcessorConfig;
 
-  constructor(config: DeepFilterNet3ProcessorConfig = {}) {
+  private constructor(config: DeepFilterNet3ProcessorConfig = {}) {
     this.config = {
       sampleRate: config.sampleRate ?? 48000,
       noiseReductionLevel: config.noiseReductionLevel ?? 50,
@@ -24,21 +26,47 @@ export class DeepFilterNet3Processor {
     this.assetLoader = getAssetLoader(config.assetConfig);
   }
 
-  async initialize(): Promise<void> {
+  static async create(config: DeepFilterNet3ProcessorConfig = {}): Promise<DeepFilterNet3Processor> {
+    const processor = new DeepFilterNet3Processor(config);
+    await processor.initialize();
+    return processor;
+  }
+
+  static preload(config?: DeepFilterNet3ProcessorConfig): Promise<ProcessorAssets> {
+    const targetAssetConfig = config?.assetConfig;
+    const loader = getAssetLoader(targetAssetConfig);
+    const assetUrls = loader.getAssetUrls();
+
+    const currentCdnUrl = targetAssetConfig?.cdnUrl ?? 'https://cdn.mezon.ai/AI/models/datas/noise_suppression/deepfilternet3';
+    const cachedCdnUrl = DeepFilterNet3Processor.preloadConfig?.cdnUrl ?? 'https://cdn.mezon.ai/AI/models/datas/noise_suppression/deepfilternet3';
+
+    if (DeepFilterNet3Processor.preloadPromise && currentCdnUrl === cachedCdnUrl) {
+      return DeepFilterNet3Processor.preloadPromise;
+    }
+
+    DeepFilterNet3Processor.preloadConfig = targetAssetConfig;
+
+    DeepFilterNet3Processor.preloadPromise = (async () => {
+      const [wasmBytes, modelBytes] = await Promise.all([
+        loader.fetchAsset(assetUrls.wasm),
+        loader.fetchAsset(assetUrls.model)
+      ]);
+      const wasmModule = await WebAssembly.compile(wasmBytes);
+      return { wasmModule, modelBytes };
+    })();
+
+    return DeepFilterNet3Processor.preloadPromise;
+  }
+
+  private async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // Fetch and compile WASM on main thread
-    const assetUrls = this.assetLoader.getAssetUrls();
-    const [wasmBytes, modelBytes] = await Promise.all([
-      this.assetLoader.fetchAsset(assetUrls.wasm),
-      this.assetLoader.fetchAsset(assetUrls.model)
-    ]);
-
-    // Compile WASM module
-    const wasmModule = await WebAssembly.compile(wasmBytes);
-
-    this.assets = { wasmModule, modelBytes };
-    this.isInitialized = true;
+    try {
+      this.assets = await DeepFilterNet3Processor.preload(this.config);
+      this.isInitialized = true;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async createAudioWorkletNode(audioContext: AudioContext): Promise<AudioWorkletNode> {
@@ -104,7 +132,7 @@ export class DeepFilterNet3Processor {
 
   private ensureInitialized(): void {
     if (!this.isInitialized) {
-      throw new Error('Processor not initialized. Call initialize() first.');
+      throw new Error('Processor not initialized. Use DeepFilterNet3Processor.create() to instantiate.');
     }
   }
 }
